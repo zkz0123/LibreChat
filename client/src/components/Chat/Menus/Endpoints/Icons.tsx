@@ -15,7 +15,7 @@ import UnknownIcon from './UnknownIcon';
 import { cn } from '~/utils';
 
 export const icons = {
-  [EModelEndpoint.azureOpenAI]: AzureMinimalIcon,
+  [EModelEndpoint.azureOpenAI]: GPTIcon,
   [EModelEndpoint.openAI]: GPTIcon,
   [EModelEndpoint.gptPlugins]: MinimalPlugin,
   [EModelEndpoint.anthropic]: AnthropicIcon,
