@@ -25,8 +25,8 @@ const MinimalIcon: React.FC<IconProps> = (props) => {
 
   const endpointIcons = {
     [EModelEndpoint.azureOpenAI]: {
-      icon: <AzureMinimalIcon />,
-      name: props.chatGptLabel || 'ChatGPT',
+      icon: <OpenAIMinimalIcon />,
+      name: 'ChatGPT',
     },
     [EModelEndpoint.openAI]: { icon: <OpenAIMinimalIcon />, name: props.chatGptLabel || 'ChatGPT' },
     [EModelEndpoint.gptPlugins]: { icon: <PluginMinimalIcon />, name: 'Plugins' },

@@ -69,7 +69,7 @@ const Icon: React.FC<IconProps> = (props) => {
         name: endpoint,
       },
       [EModelEndpoint.azureOpenAI]: {
-        icon: <AzureMinimalIcon size={size * 0.5555555555555556} />,
+        icon: <GPTIcon size={size * 0.5555555555555556} />,
         bg: 'linear-gradient(0.375turn, #61bde2, #4389d0)',
         name: 'ChatGPT',
       },
