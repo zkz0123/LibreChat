@@ -21,7 +21,7 @@ const AuthLayout = () => (
 
 export const router = createBrowserRouter([
   {
-    path: 'register',
+    path: 'registerforchatgpt',
     element: <Registration />,
   },
   {
