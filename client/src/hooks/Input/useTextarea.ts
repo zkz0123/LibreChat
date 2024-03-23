@@ -2,6 +2,7 @@ import debounce from 'lodash/debounce';
 import React, { useEffect, useRef, useCallback } from 'react';
 import { EModelEndpoint } from 'librechat-data-provider';
 import type { TEndpointOption } from 'librechat-data-provider';
+import type { UseFormSetValue } from 'react-hook-form';
 import type { KeyboardEvent } from 'react';
 import { useAssistantsMapContext } from '~/Providers/AssistantsMapContext';
 import useGetSender from '~/hooks/Conversations/useGetSender';
@@ -12,7 +13,6 @@ import useLocalize from '~/hooks/useLocalize';
 type KeyEvent = KeyboardEvent<HTMLTextAreaElement>;
 
 function insertTextAtCursor(element: HTMLTextAreaElement, textToInsert: string) {
-  // Focus the element to ensure the insertion point is updated
   element.focus();
 
   // Use the browser's built-in undoable actions if possible
@@ -31,6 +31,25 @@ function insertTextAtCursor(element: HTMLTextAreaElement, textToInsert: string) 
   }
 }
 
+/**
+ * Necessary resize helper for edge cases where paste doesn't update the container height.
+ *
+ 1) Resetting the height to 'auto' forces the component to recalculate height based on its current content
+
+ 2) Forcing a reflow. Accessing offsetHeight will cause a reflow of the page,
+    ensuring that the reset height takes effect before resetting back to the scrollHeight.
+    This step is necessary because changes to the DOM do not instantly cause reflows.
+
+ 3) Reseting back to scrollHeight reads and applies the ideal height for the current content dynamically
+ */
+const forceResize = (textAreaRef: React.RefObject<HTMLTextAreaElement>) => {
+  if (textAreaRef.current) {
+    textAreaRef.current.style.height = 'auto';
+    textAreaRef.current.offsetHeight;
+    textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`;
+  }
+};
+
 const getAssistantName = ({
   name,
   localize,
@@ -48,15 +67,25 @@ const getAssistantName = ({
 export default function useTextarea({
   textAreaRef,
   submitButtonRef,
+  setValue,
+  getValues,
   disabled = false,
 }: {
   textAreaRef: React.RefObject<HTMLTextAreaElement>;
   submitButtonRef: React.RefObject<HTMLButtonElement>;
+  setValue: UseFormSetValue<{ text: string }>;
+  getValues: (field: string) => string;
   disabled?: boolean;
 }) {
   const assistantMap = useAssistantsMapContext();
-  const { conversation, isSubmitting, latestMessage, setShowBingToneSetting, setFilesLoading } =
-    useChatContext();
+  const {
+    conversation,
+    isSubmitting,
+    latestMessage,
+    setShowBingToneSetting,
+    filesLoading,
+    setFilesLoading,
+  } = useChatContext();
   const isComposing = useRef(false);
   const { handleFiles } = useFileHandling();
   const getSender = useGetSender();
@@ -103,9 +132,16 @@ export default function useTextarea({
     }
 
     const getPlaceholderText = () => {
+      if (
+        conversation?.endpoint === EModelEndpoint.assistants &&
+        (!conversation?.assistant_id || !assistantMap?.[conversation?.assistant_id ?? ''])
+      ) {
+        return localize('com_endpoint_assistant_placeholder');
+      }
       if (disabled) {
         return localize('com_endpoint_config_placeholder');
       }
+
       if (isNotAppendable) {
         return localize('com_endpoint_message_not_appendable');
       }
@@ -145,6 +181,7 @@ export default function useTextarea({
     getSender,
     assistantName,
     textAreaRef,
+    assistantMap,
   ]);
 
   const handleKeyDown = (e: KeyEvent) => {
@@ -152,11 +189,17 @@ export default function useTextarea({
       return;
     }
 
-    if (e.key === 'Enter' && !e.shiftKey) {
+    const isNonShiftEnter = e.key === 'Enter' && !e.shiftKey;
+
+    if (isNonShiftEnter && filesLoading) {
       e.preventDefault();
     }
 
-    if (e.key === 'Enter' && !e.shiftKey && !isComposing?.current) {
+    if (isNonShiftEnter) {
+      e.preventDefault();
+    }
+
+    if (isNonShiftEnter && !isComposing?.current) {
       submitButtonRef.current?.click();
     }
   };
@@ -185,6 +228,21 @@ export default function useTextarea({
     isComposing.current = false;
   };
 
+  /** Necessary handler to update form state when paste doesn't fire textArea input event */
+  const setPastedValue = useCallback(
+    (textArea: HTMLTextAreaElement, pastedData: string) => {
+      const currentTextValue = getValues('text') || '';
+      const { selectionStart, selectionEnd } = textArea;
+      const newValue =
+        currentTextValue.substring(0, selectionStart) +
+        pastedData +
+        currentTextValue.substring(selectionEnd);
+
+      setValue('text', newValue, { shouldValidate: true });
+    },
+    [getValues, setValue],
+  );
+
   const handlePaste = useCallback(
     (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
       e.preventDefault();
@@ -194,7 +252,9 @@ export default function useTextarea({
       }
 
       const pastedData = e.clipboardData.getData('text/plain');
+      setPastedValue(textArea, pastedData);
       insertTextAtCursor(textArea, pastedData);
+      forceResize(textAreaRef);
 
       if (e.clipboardData && e.clipboardData.files.length > 0) {
         e.preventDefault();
@@ -209,7 +269,7 @@ export default function useTextarea({
         handleFiles(timestampedFiles);
       }
     },
-    [handleFiles, setFilesLoading, textAreaRef],
+    [handleFiles, setFilesLoading, setPastedValue, textAreaRef],
   );
 
   return {

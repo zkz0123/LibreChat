@@ -1,16 +1,17 @@
 import { useRecoilState } from 'recoil';
-import { memo, useCallback, useRef } from 'react';
-import TextareaAutosize from 'react-textarea-autosize';
 import { useForm } from 'react-hook-form';
+import TextareaAutosize from 'react-textarea-autosize';
+import { memo, useCallback, useRef, useMemo } from 'react';
 import {
   supportsFiles,
   mergeFileConfig,
   fileConfig as defaultFileConfig,
+  EModelEndpoint,
 } from 'librechat-data-provider';
+import { useChatContext, useAssistantsMapContext } from '~/Providers';
 import { useRequiresKey, useTextarea } from '~/hooks';
 import { useGetFileConfig } from '~/data-provider';
 import { cn, removeFocusOutlines } from '~/utils';
-import { useChatContext } from '~/Providers';
 import AttachFile from './Files/AttachFile';
 import StopButton from './StopButton';
 import SendButton from './SendButton';
@@ -23,8 +24,18 @@ const ChatForm = ({ index = 0 }) => {
   const [showStopButton, setShowStopButton] = useRecoilState(store.showStopButtonByIndex(index));
   const { requiresKey } = useRequiresKey();
 
+  const methods = useForm<{ text: string }>({
+    defaultValues: { text: '' },
+  });
+
   const { handlePaste, handleKeyUp, handleKeyDown, handleCompositionStart, handleCompositionEnd } =
-    useTextarea({ textAreaRef, submitButtonRef, disabled: !!requiresKey });
+    useTextarea({
+      textAreaRef,
+      submitButtonRef,
+      disabled: !!requiresKey,
+      setValue: methods.setValue,
+      getValues: methods.getValues,
+    });
 
   const {
     ask,
@@ -37,9 +48,7 @@ const ChatForm = ({ index = 0 }) => {
     setFilesLoading,
   } = useChatContext();
 
-  const methods = useForm<{ text: string }>({
-    defaultValues: { text: '' },
-  });
+  const assistantMap = useAssistantsMapContext();
 
   const submitMessage = useCallback(
     (data?: { text: string }) => {
@@ -61,6 +70,16 @@ const ChatForm = ({ index = 0 }) => {
   });
 
   const endpointFileConfig = fileConfig.endpoints[endpoint ?? ''];
+  const invalidAssistant = useMemo(
+    () =>
+      conversation?.endpoint === EModelEndpoint.assistants &&
+      (!conversation?.assistant_id || !assistantMap?.[conversation?.assistant_id ?? '']),
+    [conversation?.assistant_id, conversation?.endpoint, assistantMap],
+  );
+  const disableInputs = useMemo(
+    () => !!(requiresKey || invalidAssistant),
+    [requiresKey, invalidAssistant],
+  );
 
   return (
     <form
@@ -69,7 +88,7 @@ const ChatForm = ({ index = 0 }) => {
     >
       <div className="relative flex h-full flex-1 items-stretch md:flex-col">
         <div className="flex w-full items-center">
-          <div className="[&:has(textarea:focus)]:border-token-border-xheavy dark:border-token-border-medium border-token-border-medium bg-token-main-surface-primary relative flex w-full flex-grow flex-col overflow-hidden rounded-2xl border dark:text-white [&:has(textarea:focus)]:shadow-[0_2px_6px_rgba(0,0,0,.05)]">
+          <div className="[&:has(textarea:focus)]:border-token-border-xheavy border-token-border-medium bg-token-main-surface-primary relative flex w-full flex-grow flex-col overflow-hidden rounded-2xl border dark:border-gray-600 dark:text-white [&:has(textarea:focus)]:shadow-[0_2px_6px_rgba(0,0,0,.05)] dark:[&:has(textarea:focus)]:border-gray-500">
             <FileRow
               files={files}
               setFiles={setFiles}
@@ -92,7 +111,7 @@ const ChatForm = ({ index = 0 }) => {
                 ref={(e) => {
                   textAreaRef.current = e;
                 }}
-                disabled={!!requiresKey}
+                disabled={disableInputs}
                 onPaste={handlePaste}
                 onKeyUp={handleKeyUp}
                 onKeyDown={handleKeyDown}
@@ -109,14 +128,14 @@ const ChatForm = ({ index = 0 }) => {
                     : 'pl-3 md:pl-4',
                   'm-0 w-full resize-none border-0 bg-transparent py-[10px] pr-10 placeholder-black/50 focus:ring-0 focus-visible:ring-0 dark:bg-transparent dark:placeholder-white/50 md:py-3.5 md:pr-12 ',
                   removeFocusOutlines,
-                  'max-h-[65vh] md:max-h-[85vh]',
+                  'max-h-[65vh] md:max-h-[75vh]',
                 )}
               />
             )}
             <AttachFile
               endpoint={_endpoint ?? ''}
               endpointType={endpointType}
-              disabled={requiresKey}
+              disabled={disableInputs}
             />
             {isSubmitting && showStopButton ? (
               <StopButton stop={handleStopGenerating} setShowStopButton={setShowStopButton} />
@@ -125,7 +144,7 @@ const ChatForm = ({ index = 0 }) => {
                 <SendButton
                   ref={submitButtonRef}
                   control={methods.control}
-                  disabled={!!(filesLoading || isSubmitting || requiresKey)}
+                  disabled={!!(filesLoading || isSubmitting || disableInputs)}
                 />
               )
             )}
