@@ -60,8 +60,8 @@ export const azureGroupSchema = z
   .and(azureBaseSchema);
 
 export const azureGroupConfigsSchema = z.array(azureGroupSchema).min(1);
+export type TAzureGroup = z.infer<typeof azureGroupSchema>;
 export type TAzureGroups = z.infer<typeof azureGroupConfigsSchema>;
-
 export type TAzureModelMapSchema = {
   // deploymentName?: string;
   // version?: string;
@@ -82,6 +82,7 @@ export type TValidatedAzureConfig = {
 
 export enum Capabilities {
   code_interpreter = 'code_interpreter',
+  image_vision = 'image_vision',
   retrieval = 'retrieval',
   actions = 'actions',
   tools = 'tools',
@@ -100,6 +101,7 @@ export const assistantEndpointSchema = z.object({
     .optional()
     .default([
       Capabilities.code_interpreter,
+      Capabilities.image_vision,
       Capabilities.retrieval,
       Capabilities.actions,
       Capabilities.tools,
@@ -148,6 +150,8 @@ export const endpointSchema = z.object({
   customOrder: z.number().optional(),
 });
 
+export type TEndpoint = z.infer<typeof endpointSchema>;
+
 export const azureEndpointSchema = z
   .object({
     groups: azureGroupConfigsSchema,
@@ -183,7 +187,7 @@ export const rateLimitSchema = z.object({
 
 export const configSchema = z.object({
   version: z.string(),
-  cache: z.boolean(),
+  cache: z.boolean().optional().default(true),
   interface: z
     .object({
       privacyPolicy: z
@@ -297,6 +301,7 @@ export const defaultModels = {
   [EModelEndpoint.anthropic]: [
     'claude-3-opus-20240229',
     'claude-3-sonnet-20240229',
+    'claude-3-haiku-20240307',
     'claude-2.1',
     'claude-2',
     'claude-1.2',
@@ -516,7 +521,7 @@ export enum Constants {
   /**
    * Key for the app's version.
    */
-  VERSION = 'v0.6.10',
+  VERSION = 'v0.7.0',
   /**
    * Key for the Custom Config's version (librechat.yaml).
    */
@@ -528,9 +533,11 @@ export enum Constants {
 }
 
 export const defaultOrderQuery: {
-  order: 'asc';
+  order: 'desc';
+  limit: 100;
 } = {
-  order: 'asc',
+  order: 'desc',
+  limit: 100,
 };
 
 export enum AssistantStreamEvents {
