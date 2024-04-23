@@ -1,19 +1,17 @@
 const {
-  Constants,
   FileSources,
   EModelEndpoint,
+  EImageOutputType,
   defaultSocialLogins,
-  validateAzureGroups,
-  mapModelToAzureConfig,
-  deprecatedAzureVariables,
-  conflictingAzureVariables,
 } = require('librechat-data-provider');
+const { checkVariables, checkHealth, checkConfig, checkAzureVariables } = require('./start/checks');
+const { azureAssistantsDefaults, assistantsConfigSetup } = require('./start/assistants');
 const { initializeFirebase } = require('./Files/Firebase/initialize');
 const loadCustomConfig = require('./Config/loadCustomConfig');
 const handleRateLimits = require('./Config/handleRateLimits');
+const { azureConfigSetup } = require('./start/azureOpenAI');
 const { loadAndFormatTools } = require('./ToolService');
 const paths = require('~/config/paths');
-const { logger } = require('~/config');
 
 /**
  *
@@ -26,7 +24,11 @@ const AppService = async (app) => {
   const config = (await loadCustomConfig()) ?? {};
 
   const fileStrategy = config.fileStrategy ?? FileSources.local;
+  const imageOutputType = config?.imageOutputType ?? EImageOutputType.PNG;
   process.env.CDN_PROVIDER = fileStrategy;
+
+  checkVariables();
+  await checkHealth();
 
   if (fileStrategy === FileSources.firebase) {
     initializeFirebase();
@@ -48,94 +50,46 @@ const AppService = async (app) => {
 
   if (!Object.keys(config).length) {
     app.locals = {
-      availableTools,
+      paths,
       fileStrategy,
       socialLogins,
-      paths,
+      availableTools,
+      imageOutputType,
     };
 
     return;
   }
 
-  if (config.version !== Constants.CONFIG_VERSION) {
-    logger.info(
-      `\nOutdated Config version: ${config.version}. Current version: ${Constants.CONFIG_VERSION}\n\nCheck out the latest config file guide for new options and features.\nhttps://docs.librechat.ai/install/configuration/custom_config.html\n\n`,
-    );
-  }
-
+  checkConfig(config);
   handleRateLimits(config?.rateLimits);
 
   const endpointLocals = {};
 
   if (config?.endpoints?.[EModelEndpoint.azureOpenAI]) {
-    const { groups, titleModel, titleConvo, titleMethod, plugins } =
-      config.endpoints[EModelEndpoint.azureOpenAI];
-    const { isValid, modelNames, modelGroupMap, groupMap, errors } = validateAzureGroups(groups);
+    endpointLocals[EModelEndpoint.azureOpenAI] = azureConfigSetup(config);
+    checkAzureVariables();
+  }
 
-    if (!isValid) {
-      const errorString = errors.join('\n');
-      const errorMessage = 'Invalid Azure OpenAI configuration:\n' + errorString;
-      logger.error(errorMessage);
-      throw new Error(errorMessage);
-    }
-
-    for (const modelName of modelNames) {
-      mapModelToAzureConfig({ modelName, modelGroupMap, groupMap });
-    }
-
-    endpointLocals[EModelEndpoint.azureOpenAI] = {
-      modelNames,
-      modelGroupMap,
-      groupMap,
-      titleConvo,
-      titleMethod,
-      titleModel,
-      plugins,
-    };
-
-    deprecatedAzureVariables.forEach(({ key, description }) => {
-      if (process.env[key]) {
-        logger.warn(
-          `The \`${key}\` environment variable (related to ${description}) should not be used in combination with the \`azureOpenAI\` endpoint configuration, as you will experience conflicts and errors.`,
-        );
-      }
-    });
-
-    conflictingAzureVariables.forEach(({ key }) => {
-      if (process.env[key]) {
-        logger.warn(
-          `The \`${key}\` environment variable should not be used in combination with the \`azureOpenAI\` endpoint configuration, as you may experience with the defined placeholders for mapping to the current model grouping using the same name.`,
-        );
-      }
-    });
+  if (config?.endpoints?.[EModelEndpoint.azureOpenAI]?.assistants) {
+    endpointLocals[EModelEndpoint.assistants] = azureAssistantsDefaults();
   }
 
   if (config?.endpoints?.[EModelEndpoint.assistants]) {
-    const { disableBuilder, pollIntervalMs, timeoutMs, supportedIds, excludedIds } =
-      config.endpoints[EModelEndpoint.assistants];
-
-    if (supportedIds?.length && excludedIds?.length) {
-      logger.warn(
-        `Both \`supportedIds\` and \`excludedIds\` are defined for the ${EModelEndpoint.assistants} endpoint; \`excludedIds\` field will be ignored.`,
-      );
-    }
-
-    /** @type {Partial<TAssistantEndpoint>} */
-    endpointLocals[EModelEndpoint.assistants] = {
-      disableBuilder,
-      pollIntervalMs,
-      timeoutMs,
-      supportedIds,
-      excludedIds,
-    };
+    endpointLocals[EModelEndpoint.assistants] = assistantsConfigSetup(
+      config,
+      endpointLocals[EModelEndpoint.assistants],
+    );
   }
 
   app.locals = {
-    socialLogins,
-    availableTools,
-    fileStrategy,
-    fileConfig: config?.fileConfig,
     paths,
+    socialLogins,
+    fileStrategy,
+    availableTools,
+    imageOutputType,
+    interface: config?.interface,
+    fileConfig: config?.fileConfig,
+    secureImageLinks: config?.secureImageLinks,
     ...endpointLocals,
   };
 };

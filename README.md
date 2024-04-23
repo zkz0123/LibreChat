@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-<a href="https://railway.app/template/b5k2mn?referralCode=HI9hWz">
+<a href="https://railway.app/template/b5k2mn?referralCode=myKrVZ">
   <img src="https://railway.app/button.svg" alt="Deploy on Railway" height="30">
 </a>
 <a href="https://zeabur.com/templates/0X2ZY8">
@@ -40,21 +40,26 @@
 
 # 📃 Features
 
-- 🖥️ UI matching ChatGPT, including Dark mode, Streaming, and 11-2023 updates
+- 🖥️ UI matching ChatGPT, including Dark mode, Streaming, and latest updates
 - 💬 Multimodal Chat:
-  - Upload and analyze images with GPT-4 and Gemini Vision 📸
-  - More filetypes and Assistants API integration in Active Development 🚧
+    - Upload and analyze images with Claude 3, GPT-4, and Gemini Vision 📸
+    - Chat with Files using Custom Endpoints, OpenAI, Azure, Anthropic, & Google. 🗃️
+    - Advanced Agents with Files, Code Interpreter, Tools, and API Actions 🔦
+      - Available through the [OpenAI Assistants API](https://platform.openai.com/docs/assistants/overview) 🌤️
+      - Non-OpenAI Agents in Active Development 🚧
 - 🌎 Multilingual UI:
   - English, 中文, Deutsch, Español, Français, Italiano, Polski, Português Brasileiro,
   - Русский, 日本語, Svenska, 한국어, Tiếng Việt, 繁體中文, العربية, Türkçe, Nederlands, עברית
-- 🤖 AI model selection: OpenAI API, Azure, BingAI, ChatGPT, Google Vertex AI, Anthropic (Claude), Plugins
+- 🤖 AI model selection: OpenAI, Azure OpenAI, BingAI, ChatGPT, Google Vertex AI, Anthropic (Claude), Plugins, Assistants API (including Azure Assistants)
 - 💾 Create, Save, & Share Custom Presets
 - 🔄 Edit, Resubmit, and Continue messages with conversation branching
 - 📤 Export conversations as screenshots, markdown, text, json.
 - 🔍 Search all messages/conversations
 - 🔌 Plugins, including web access, image generation with DALL-E-3 and more
 - 👥 Multi-User, Secure Authentication with Moderation and Token spend tools
-- ⚙️ Configure Proxy, Reverse Proxy, Docker, many Deployment options, and completely Open-Source
+- ⚙️ Configure Proxy, Reverse Proxy, Docker, & many Deployment options
+- 📖 Completely Open-Source & Built in Public
+- 🧑‍🤝‍🧑 Community-driven development, support, and feedback
 
 [For a thorough review of our features, see our docs here](https://docs.librechat.ai/features/plugins/introduction.html) 📚
 
