@@ -3,11 +3,20 @@
 // file deepcode ignore HardcodedNonCryptoSecret: No hardcoded secrets present in this file
 
 export default {
+  com_error_moderation:
+    'It appears that the content submitted has been flagged by our moderation system for not aligning with our community guidelines. We\'re unable to proceed with this specific topic. If you have any other questions or topics you\'d like to explore, please edit your message, or create a new conversation.',
+  com_error_no_user_key: 'No key found. Please provide a key and try again.',
+  com_error_no_base_url: 'No base URL found. Please provide one and try again.',
+  com_error_invalid_user_key: 'Invalid key provided. Please provide a key and try again.',
+  com_error_expired_user_key:
+    'Provided key for {0} expired at {1}. Please provide a key and try again.',
   com_files_no_results: 'No results.',
   com_files_filter: 'Filter files...',
   com_files_number_selected: '{0} of {1} file(s) selected',
   com_sidepanel_select_assistant: 'Select an Assistant',
+  com_sidepanel_parameters: 'Parameters',
   com_sidepanel_assistant_builder: 'Assistant Builder',
+  com_sidepanel_hide_panel: 'Hide Panel',
   com_sidepanel_attach_files: 'Attach Files',
   com_sidepanel_manage_files: 'Manage Files',
   com_assistants_capabilities: 'Capabilities',
@@ -16,10 +25,12 @@ export default {
     'If you upload files under Knowledge, conversations with your Assistant may include file contents.',
   com_assistants_knowledge_disabled:
     'Assistant must be created, and Code Interpreter or Retrieval must be enabled and saved before uploading files as Knowledge.',
+  com_assistants_image_vision: 'Image Vision',
   com_assistants_code_interpreter: 'Code Interpreter',
   com_assistants_code_interpreter_files:
     'The following files are only available for Code Interpreter:',
   com_assistants_retrieval: 'Retrieval',
+  com_assistants_search_name: 'Search assistants by name',
   com_assistants_tools: 'Tools',
   com_assistants_actions: 'Actions',
   com_assistants_add_tools: 'Add Tools',
@@ -43,6 +54,8 @@ export default {
   com_assistants_update_error: 'There was an error updating your assistant.',
   com_assistants_create_success: 'Successfully created',
   com_assistants_create_error: 'There was an error creating your assistant.',
+  com_ui_field_required: 'This field is required',
+  com_ui_download_error: 'Error downloading file. The file may have been deleted.',
   com_ui_attach_error_type: 'Unsupported file type for endpoint:',
   com_ui_attach_error_size: 'File size limit exceeded for endpoint:',
   com_ui_attach_error:
@@ -63,6 +76,10 @@ export default {
     'May occasionally produce harmful instructions or biased content',
   com_ui_limitation_limited_2021: 'Limited knowledge of world and events after 2021',
   com_ui_experimental: 'Experimental Features',
+  com_ui_on: 'On',
+  com_ui_off: 'Off',
+  com_ui_yes: 'Yes',
+  com_ui_no: 'No',
   com_ui_ascending: 'Asc',
   com_ui_descending: 'Desc',
   com_ui_show_all: 'Show All',
@@ -256,7 +273,7 @@ export default {
     'Resend all previously attached files. Note: this will increase token cost and you may experience errors with many attachments.',
   com_endpoint_openai_detail:
     'The resolution for Vision requests. "Low" is cheaper and faster, "High" is more detailed and expensive, and "Auto" will automatically choose between the two based on the image resolution.',
-  com_endpoint_openai_custom_name_placeholder: 'Set a custom name for ChatGPT',
+  com_endpoint_openai_custom_name_placeholder: 'Set a custom name for the AI',
   com_endpoint_openai_prompt_prefix_placeholder:
     'Set custom instructions to include in System Message. Default: none',
   com_endpoint_anthropic_temp:
@@ -395,7 +412,9 @@ export default {
   com_nav_theme_system: 'System',
   com_nav_theme_dark: 'Dark',
   com_nav_theme_light: 'Light',
+  com_nav_enter_to_send: 'Press Enter to send messages',
   com_nav_user_name_display: 'Display username in messages',
+  com_nav_show_code: 'Always show code when using code interpreter',
   com_nav_clear_all_chats: 'Clear all chats',
   com_nav_confirm_clear: 'Confirm Clear',
   com_nav_close_sidebar: 'Close sidebar',

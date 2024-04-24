@@ -61,6 +61,25 @@ const autoScroll = atom<boolean>({
   ] as const,
 });
 
+const showCode = atom<boolean>({
+  key: 'showCode',
+  default: localStorage.getItem('showCode') === 'true',
+  effects: [
+    ({ setSelf, onSet }) => {
+      const savedValue = localStorage.getItem('showCode');
+      if (savedValue != null) {
+        setSelf(savedValue === 'true');
+      }
+
+      onSet((newValue: unknown) => {
+        if (typeof newValue === 'boolean') {
+          localStorage.setItem('showCode', newValue.toString());
+        }
+      });
+    },
+  ] as const,
+});
+
 const hideSidePanel = atom<boolean>({
   key: 'hideSidePanel',
   default: localStorage.getItem('hideSidePanel') === 'true',
@@ -137,6 +156,25 @@ const UsernameDisplay = atom<boolean>({
   ] as const,
 });
 
+const enterToSend = atom<boolean>({
+  key: 'enterToSend',
+  default: true,
+  effects: [
+    ({ setSelf, onSet }) => {
+      const savedValue = localStorage.getItem('enterToSend');
+      if (savedValue != null) {
+        setSelf(savedValue === 'true');
+      }
+
+      onSet((newValue: unknown) => {
+        if (typeof newValue === 'boolean') {
+          localStorage.setItem('enterToSend', newValue.toString());
+        }
+      });
+    },
+  ] as const,
+});
+
 export default {
   abortScroll,
   showFiles,
@@ -147,6 +185,8 @@ export default {
   showBingToneSetting,
   showPopover,
   autoScroll,
+  enterToSend,
+  showCode,
   hideSidePanel,
   modularChat,
   LaTeXParsing,

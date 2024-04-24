@@ -2,7 +2,7 @@
 # https://docs.librechat.ai/install/configuration/custom_config.html
 
 # Configuration version (required)
-version: 1.0.5
+version: 1.0.6
 
 # Cache settings: Set to true to enable caching
 cache: true
@@ -25,24 +25,6 @@ registration:
   # allowedDomains:
   # - "gmail.com"
 
-# fileConfig:
-#   endpoints:
-#     assistants:
-#       fileLimit: 5
-#       fileSizeLimit: 10  # Maximum size for an individual file in MB
-#       totalSizeLimit: 50  # Maximum total size for all files in a single request in MB
-#       supportedMimeTypes:
-#         - "image/.*"
-#         - "application/pdf"
-#     openAI:
-#       disabled: true  # Disables file uploading to the OpenAI endpoint
-#     default:
-#       totalSizeLimit: 20
-#     YourCustomEndpointName:
-#       fileLimit: 2
-#       fileSizeLimit: 5
-#   serverFileSizeLimit: 100  # Global server file size limit in MB
-#   avatarSizeLimit: 2  # Limit for user avatar image size in MB
 # rateLimits:
 #   fileUploads:
 #     ipMax: 100
@@ -62,14 +44,20 @@ endpoints:
   #   # (optional) Models that support retrieval, will default to latest known OpenAI models that support the feature
   #   retrievalModels: ["gpt-4-turbo-preview"]
   #   # (optional) Assistant Capabilities available to all users. Omit the ones you wish to exclude. Defaults to list below.
-  #   capabilities: ["code_interpreter", "retrieval", "actions", "tools"]
+  #   capabilities: ["code_interpreter", "retrieval", "actions", "tools", "image_vision"]
   custom:
     # Groq Example
     - name: 'groq'
       apiKey: '${GROQ_API_KEY}'
       baseURL: 'https://api.groq.com/openai/v1/'
       models:
-        default: ['llama2-70b-4096', 'mixtral-8x7b-32768', 'gemma-7b-it']
+        default: [
+          "llama3-70b-8192",
+          "llama3-8b-8192",
+          "llama2-70b-4096",
+          "mixtral-8x7b-32768",
+          "gemma-7b-it",
+          ]
         fetch: false
       titleConvo: true
       titleModel: 'mixtral-8x7b-32768'
@@ -128,12 +116,31 @@ endpoints:
       apiKey: '${OPENROUTER_KEY}'
       baseURL: 'https://openrouter.ai/api/v1'
       models:
-        default: ['gpt-3.5-turbo']
+        default: ['meta-llama/llama-3-70b-instruct']
         fetch: true
       titleConvo: true
-      titleModel: 'gpt-3.5-turbo'
+      titleModel: 'meta-llama/llama-3-70b-instruct'
       # Recommended: Drop the stop parameter from the request as Openrouter models use a variety of stop tokens.
       dropParams: ['stop']
       modelDisplayLabel: 'OpenRouter'
+
+# fileConfig:
+#   endpoints:
+#     assistants:
+#       fileLimit: 5
+#       fileSizeLimit: 10  # Maximum size for an individual file in MB
+#       totalSizeLimit: 50  # Maximum total size for all files in a single request in MB
+#       supportedMimeTypes:
+#         - "image/.*"
+#         - "application/pdf"
+#     openAI:
+#       disabled: true  # Disables file uploading to the OpenAI endpoint
+#     default:
+#       totalSizeLimit: 20
+#     YourCustomEndpointName:
+#       fileLimit: 2
+#       fileSizeLimit: 5
+#   serverFileSizeLimit: 100  # Global server file size limit in MB
+#   avatarSizeLimit: 2  # Limit for user avatar image size in MB
 # See the Custom Configuration Guide for more information:
 # https://docs.librechat.ai/install/configuration/custom_config.html

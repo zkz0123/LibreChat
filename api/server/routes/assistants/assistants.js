@@ -149,7 +149,7 @@ router.delete('/:id', async (req, res) => {
  */
 router.get('/', async (req, res) => {
   try {
-    const { limit, order, after, before } = req.query;
+    const { limit = 100, order = 'desc', after, before } = req.query;
     const query = { limit, order, after, before };
 
     const azureConfig = req.app.locals[EModelEndpoint.azureOpenAI];
@@ -213,7 +213,13 @@ router.post('/avatar/:assistant_id', upload.single('file'), async (req, res) => 
     /** @type {{ openai: OpenAI }} */
     const { openai } = await initializeClient({ req, res });
 
-    const image = await uploadImageBuffer({ req, context: FileContext.avatar });
+    const image = await uploadImageBuffer({
+      req,
+      context: FileContext.avatar,
+      metadata: {
+        buffer: req.file.buffer,
+      },
+    });
 
     try {
       _metadata = JSON.parse(_metadata);
