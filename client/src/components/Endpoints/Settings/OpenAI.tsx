@@ -1,5 +1,12 @@
+import { useMemo } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
-import { ImageDetail, imageDetailNumeric, imageDetailValue } from 'librechat-data-provider';
+import * as InputNumberPrimitive from 'rc-input-number';
+import {
+  EModelEndpoint,
+  ImageDetail,
+  imageDetailNumeric,
+  imageDetailValue,
+} from 'librechat-data-provider';
 import {
   Input,
   Label,
@@ -10,11 +17,14 @@ import {
   SelectDropDown,
   HoverCardTrigger,
 } from '~/components/ui';
-import { cn, defaultTextProps, optionText, removeFocusOutlines } from '~/utils/';
+import { cn, defaultTextProps, optionText, removeFocusOutlines } from '~/utils';
+import { DynamicTags, DynamicInputNumber } from '~/components/SidePanel/Parameters';
 import { useLocalize, useDebouncedInput } from '~/hooks';
 import type { TModelSelectProps } from '~/common';
 import OptionHover from './OptionHover';
 import { ESide } from '~/common';
+
+type OnInputNumberChange = InputNumberPrimitive.InputNumberProps['onChange'];
 
 export default function Settings({ conversation, setOption, models, readonly }: TModelSelectProps) {
   const localize = useLocalize();
@@ -22,6 +32,7 @@ export default function Settings({ conversation, setOption, models, readonly }: 
     endpoint,
     endpointType,
     model,
+    modelLabel,
     chatGptLabel,
     promptPrefix,
     temperature,
@@ -31,36 +42,43 @@ export default function Settings({ conversation, setOption, models, readonly }: 
     resendFiles,
     imageDetail,
   } = conversation ?? {};
-  const [setChatGptLabel, chatGptLabelValue] = useDebouncedInput({
+
+  const [setChatGptLabel, chatGptLabelValue] = useDebouncedInput<string | null | undefined>({
     setOption,
     optionKey: 'chatGptLabel',
-    initialValue: chatGptLabel,
+    initialValue: modelLabel ?? chatGptLabel,
   });
-  const [setPromptPrefix, promptPrefixValue] = useDebouncedInput({
+  const [setPromptPrefix, promptPrefixValue] = useDebouncedInput<string | null | undefined>({
     setOption,
     optionKey: 'promptPrefix',
     initialValue: promptPrefix,
   });
-  const [setTemperature, temperatureValue] = useDebouncedInput({
+  const [setTemperature, temperatureValue] = useDebouncedInput<number | null | undefined>({
     setOption,
     optionKey: 'temperature',
     initialValue: temperature,
   });
-  const [setTopP, topPValue] = useDebouncedInput({
+  const [setTopP, topPValue] = useDebouncedInput<number | null | undefined>({
     setOption,
     optionKey: 'top_p',
     initialValue: topP,
   });
-  const [setFreqP, freqPValue] = useDebouncedInput({
+  const [setFreqP, freqPValue] = useDebouncedInput<number | null | undefined>({
     setOption,
     optionKey: 'frequency_penalty',
     initialValue: freqP,
   });
-  const [setPresP, presPValue] = useDebouncedInput({
+  const [setPresP, presPValue] = useDebouncedInput<number | null | undefined>({
     setOption,
     optionKey: 'presence_penalty',
     initialValue: presP,
   });
+
+  const optionEndpoint = useMemo(() => endpointType ?? endpoint, [endpoint, endpointType]);
+  const isOpenAI = useMemo(
+    () => optionEndpoint === EModelEndpoint.openAI || optionEndpoint === EModelEndpoint.azureOpenAI,
+    [optionEndpoint],
+  );
 
   if (!conversation) {
     return null;
@@ -69,8 +87,6 @@ export default function Settings({ conversation, setOption, models, readonly }: 
   const setModel = setOption('model');
   const setResendFiles = setOption('resendFiles');
   const setImageDetail = setOption('imageDetail');
-
-  const optionEndpoint = endpointType ?? endpoint;
 
   return (
     <div className="grid grid-cols-5 gap-6">
@@ -120,8 +136,68 @@ export default function Settings({ conversation, setOption, models, readonly }: 
             )}
           />
         </div>
+        <div className="grid w-full items-start gap-2">
+          <DynamicTags
+            settingKey="stop"
+            setOption={setOption}
+            label="com_endpoint_stop"
+            labelCode={true}
+            description="com_endpoint_openai_stop"
+            descriptionCode={true}
+            placeholder="com_endpoint_stop_placeholder"
+            placeholderCode={true}
+            descriptionSide="right"
+            maxTags={isOpenAI ? 4 : undefined}
+            conversation={conversation}
+            readonly={readonly}
+          />
+        </div>
       </div>
       <div className="col-span-5 flex flex-col items-center justify-start gap-6 px-3 sm:col-span-2">
+        <DynamicInputNumber
+          columnSpan={2}
+          settingKey="maxContextTokens"
+          setOption={setOption}
+          label="com_endpoint_context_tokens"
+          labelCode={true}
+          description="com_endpoint_context_info"
+          descriptionCode={true}
+          placeholder="com_nav_theme_system"
+          placeholderCode={true}
+          descriptionSide="right"
+          conversation={conversation}
+          readonly={readonly}
+          range={{
+            min: 10,
+            max: 2000000,
+            step: 1000,
+          }}
+          className="mt-1 w-full justify-between"
+          inputClassName="w-1/3"
+          showDefault={false}
+        />
+        <DynamicInputNumber
+          columnSpan={2}
+          settingKey="max_tokens"
+          setOption={setOption}
+          label="com_endpoint_max_output_tokens"
+          labelCode={true}
+          description="com_endpoint_openai_max_tokens"
+          descriptionCode={true}
+          placeholder="com_nav_theme_system"
+          placeholderCode={true}
+          descriptionSide="top"
+          conversation={conversation}
+          readonly={readonly}
+          range={{
+            min: 10,
+            max: 2000000,
+            step: 1000,
+          }}
+          className="mt-1 w-full justify-between"
+          inputClassName="w-1/3"
+          showDefault={false}
+        />
         <HoverCard openDelay={300}>
           <HoverCardTrigger className="grid w-full items-center gap-2">
             <div className="flex justify-between">
@@ -133,9 +209,10 @@ export default function Settings({ conversation, setOption, models, readonly }: 
               </Label>
               <InputNumber
                 id="temp-int"
+                stringMode={false}
                 disabled={readonly}
                 value={temperatureValue as number}
-                onChange={setTemperature}
+                onChange={setTemperature as OnInputNumberChange}
                 max={2}
                 min={0}
                 step={0.01}
