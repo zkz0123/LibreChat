@@ -166,12 +166,13 @@ class OpenAIClient extends BaseClient {
 
     this.maxContextTokens =
       this.options.maxContextTokens ??
-      getModelMaxTokens(
-        model,
-        this.options.endpointType ?? this.options.endpoint,
-        this.options.endpointTokenConfig,
-      ) ??
-      4095; // 1 less than maximum
+      6000
+      // getModelMaxTokens(
+      //   model,
+      //   this.options.endpointType ?? this.options.endpoint,
+      //   this.options.endpointTokenConfig,
+      // ) ??
+      // 4095; // 1 less than maximum
 
     if (this.shouldSummarize) {
       this.maxContextTokens = Math.floor(this.maxContextTokens / 2);
@@ -308,7 +309,7 @@ class OpenAIClient extends BaseClient {
     let tokenizer;
     this.encoding = 'text-davinci-003';
     if (this.isChatCompletion) {
-      this.encoding = 'cl100k_base';
+      this.encoding = this.modelOptions.model.includes('gpt-4o') ? 'o200k_base' : 'cl100k_base';
       tokenizer = this.constructor.getTokenizer(this.encoding);
     } else if (this.isUnofficialChatGptModel) {
       const extendSpecialTokens = {
