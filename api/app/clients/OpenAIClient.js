@@ -166,12 +166,13 @@ class OpenAIClient extends BaseClient {
 
     this.maxContextTokens =
       this.options.maxContextTokens ??
-      getModelMaxTokens(
-        model,
-        this.options.endpointType ?? this.options.endpoint,
-        this.options.endpointTokenConfig,
-      ) ??
-      4095; // 1 less than maximum
+      6000
+      // getModelMaxTokens(
+      //   model,
+      //   this.options.endpointType ?? this.options.endpoint,
+      //   this.options.endpointTokenConfig,
+      // ) ??
+      // 4095; // 1 less than maximum
 
     if (this.shouldSummarize) {
       this.maxContextTokens = Math.floor(this.maxContextTokens / 2);
